@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment Options - HVAC & Appliance Services</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f8f9fa; text-align: center; padding: 50px; }
+    .container { background: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: inline-block; }
+    .qr-code canvas { margin: 20px 0; }
+    .btn-primary { background-color: #ff9800; border: none; }
+    .btn-primary:hover { background-color: #e68900; }
+    .payment-options { margin-top: 20px; }
+    .extra-buttons { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .user-info { margin-bottom: 20px; font-size: 18px; color: #333; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h2>Select Your Payment Method</h2>
+  <div class="user-info" id="user-info"></div>
+  <p>Choose your preferred payment option:</p>
+
+  <div class="payment-options">
+    <select id="payment-method" class="form-control" required>
+      <option value="" selected disabled>Choose a payment method</option>
+      <option value="Credit/Debit Card">Credit/Debit Card</option>
+      <option value="UPI">UPI</option>
+      <option value="Paytm Wallet">Paytm Wallet</option>
+      <option value="Google Pay">Google Pay</option>
+      <option value="PhonePe">PhonePe</option>
+    </select>
+  </div>
+
+  <div id="qr-code-container" class="qr-code" style="display: none;">
+    <p>Scan the QR code to pay.</p>
+    <canvas id="qr-code"></canvas>
+  </div>
+
+  <div id="card-payment-container" style="display: none; margin-top: 20px;">
+    <input type="text" id="card-number" class="form-control mb-2" placeholder="Card Number" />
+    <input type="text" id="expiry-date" class="form-control mb-2" placeholder="Expiry Date" />
+    <input type="text" id="cvv" class="form-control mb-2" placeholder="CVV" />
+  </div>
+
+  <button id="payment-success" class="btn btn-primary" style="margin-top: 20px; display: none;">Pay Now</button>
+
+  <div class="extra-buttons">
+    <button id="confirm-booking" class="btn btn-success">Confirm Booking</button>
+    <button id="view-bookings" class="btn btn-info">OR</button>
+    <button id="back-home" class="btn btn-secondary">Back to Home</button>
+  </div>
+</div>
+
+<script>
+  const paymentMethod = document.getElementById("payment-method");
+  const qrContainer = document.getElementById("qr-code-container");
+  const cardContainer = document.getElementById("card-payment-container");
+  const paymentButton = document.getElementById("payment-success");
+  const userInfo = document.getElementById("user-info");
+
+  const bookings = JSON.parse(localStorage.getItem("hvacApplianceBookings")) || [];
+  let lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null;
+  let paymentCompleted = false;
+
+  if (lastBooking) {
+    userInfo.innerHTML = `<strong>Name:</strong> ${lastBooking.name}<br><strong>Phone:</strong> ${lastBooking.phone}`;
+  } else {
+    userInfo.innerHTML = `<strong>No recent booking found!</strong>`;
+  }
+
+  paymentMethod.addEventListener("change", function () {
+    if (this.value === "Credit/Debit Card") {
+      qrContainer.style.display = "none";
+      cardContainer.style.display = "block";
+    } else {
+      cardContainer.style.display = "none";
+      qrContainer.style.display = "block";
+      new QRious({
+        element: document.getElementById("qr-code"),
+        value: "upi://pay?pa=sakshikalekar96@okhdfcbank&pn=HVACService&am=5000.00&cu=INR",
+        size: 200
+      });
+    }
+    paymentButton.style.display = "block";
+  });
+
+  paymentButton.addEventListener("click", function () {
+    if (paymentMethod.value === "Credit/Debit Card" && (!document.getElementById("card-number").value.trim() || !document.getElementById("expiry-date").value.trim() || !document.getElementById("cvv").value.trim())) {
+      alert("Please enter all card details.");
+      return;
+    }
+    alert("Payment Successful!");
+    paymentCompleted = true;
+  });
+
+  document.getElementById("confirm-booking").addEventListener("click", function () {
+    if (!paymentCompleted) {
+      alert("Please complete payment first!");
+      return;
+    }
+    if (lastBooking) {
+      lastBooking.paymentMethod = paymentMethod.value;
+      lastBooking.paymentStatus = "Paid";
+      bookings[bookings.length - 1] = lastBooking;
+      localStorage.setItem("hvacApplianceBookings", JSON.stringify(bookings));
+      alert("Booking Confirmed and Saved!");
+    }
+  });
+
+  document.getElementById("view-bookings").addEventListener("click", function () {
+    window.location.href = "admin_login5.html";
+  });
+
+  document.getElementById("back-home").addEventListener("click", function () {
+    window.location.href = "index.html";
+  });
+</script>
+</body>
+</html>
