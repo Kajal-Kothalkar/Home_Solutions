@@ -1,0 +1,5 @@
+Bootstrap 5
+FontAwesome
+AOS (Animate on Scroll)
+Swiper.js
+Google Maps Embed API
